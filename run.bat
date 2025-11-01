@@ -1,17 +1,48 @@
 @echo off
-chcp 65001 >nul
-title Project Runner
+setlocal
 
-echo Updating from GitHub...
-if exist ".git" (
-    git fetch origin
-    git reset --hard origin/main
-    git pull origin main --force
+echo ========================================
+echo  Auto-update and Launch
+echo ========================================
+echo.
+
+REM Check for Git
+git --version >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [1/2] Git detected. Checking repository...
+    if exist ".git" (
+        echo [1/2] Updating project from GitHub...
+        git pull origin main 2>nul || git pull origin master 2>nul
+        if %errorlevel% equ 0 (
+            echo [1/2] Project successfully updated.
+        ) else (
+            echo [1/2] Failed to update project. Possible causes: no internet connection or local file changes.
+        )
+    ) else (
+        echo [1/2] This folder is not a Git repository. Skipping update.
+    )
 ) else (
-    echo Git repository not found, running local version
+    echo [1/2] Git is not installed. Skipping update.
+    echo      Please install Git: https://git-scm.com/
 )
 
-echo Starting main.py...
-python main.py
+echo.
 
-if errorlevel 1 pause
+REM Check for Python
+python --version >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Error: Python not found!
+    echo Please install Python 3.7 or newer: https://www.python.org/downloads/
+    pause
+    exit /b 1
+)
+
+REM Launch the application
+echo [2/2] Launching...
+python main.py
+if %errorlevel% neq 0 (
+    echo Error launching the application.
+    pause
+)
+
+endlocal
